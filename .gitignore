@@ -1,0 +1,61 @@
+# ─── Java / Maven ──────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── Spring Boot ───────────────────────────────────────────────
+spring-shell.log
+HELP.md
+
+# ─── Node / Next.js ────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.cache/
+frontend/.parcel-cache/
+frontend/build/
+frontend/dist/
+
+# root level node_modules (if any)
+node_modules/
+
+# ─── Environment files ─────────────────────────────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# ─── IDE / OS ──────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ─── Logs ──────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Test & coverage ───────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ─── Docker ────────────────────────────────────────────────────
+docker-compose.override.yml

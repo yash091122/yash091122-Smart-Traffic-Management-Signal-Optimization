@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: smart-traffic
+  datasource:
+    url: jdbc:mysql://localhost:3306/smart_traffic?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: smartuser
+    password: smartpass
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: "ChangeThisToASecretKeyAtLeast256BitsLongForHS256Algorithm!!"
+    expiration-ms: 86400000
+  signal:
+    base-green-seconds: 25
+    bonus-seconds-per-threshold: 5
+    vehicle-threshold: 10
+    min-green-seconds: 15
+    max-green-seconds: 90
+    default-red-seconds: 30
+    violation-wait-seconds: 120
+  emergency:
+    hold-seconds: 60

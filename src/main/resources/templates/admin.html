@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Admin — Smart Traffic</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark bg-dark mb-3">
+    <div class="container-fluid">
+        <span class="navbar-brand">Admin panel</span>
+        <a class="nav-link text-white" href="/dashboard">Dashboard</a>
+    </div>
+</nav>
+<div class="container pb-5">
+    <div id="auth-warn" class="alert alert-warning">Sign in on the <a href="/login">login page</a> first (admin token required for API calls).</div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">Simulation</div>
+                <div class="card-body">
+                    <button class="btn btn-outline-primary me-2" id="sim-tick">Run simulation tick</button>
+                    <button class="btn btn-outline-secondary" id="sim-auto-off">Pause auto sim</button>
+                    <button class="btn btn-outline-secondary" id="sim-auto-on">Resume auto sim</button>
+                    <pre id="sim-out" class="mt-2 small bg-white border p-2"></pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">Emergency corridor</div>
+                <div class="card-body">
+                    <label class="form-label">Intersection IDs (comma-separated, route order)</label>
+                    <input type="text" id="em-route" class="form-control mb-2" placeholder="1,2,3"/>
+                    <button class="btn btn-danger" id="em-go">Activate emergency</button>
+                    <pre id="em-out" class="mt-2 small bg-white border p-2"></pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">Manual vehicle count</div>
+                <div class="card-body row g-2">
+                    <div class="col-md-4">
+                        <input type="number" id="vc-id" class="form-control" placeholder="Intersection ID"/>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="number" id="vc-count" class="form-control" placeholder="Count"/>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary" id="vc-set">Set count</button>
+                    </div>
+                    <pre id="vc-out" class="small bg-white border p-2"></pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">Route optimizer</div>
+                <div class="card-body row g-2">
+                    <div class="col-md-4">
+                        <input type="number" id="rt-from" class="form-control" placeholder="From ID"/>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="number" id="rt-to" class="form-control" placeholder="To ID"/>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success" id="rt-go">Optimize</button>
+                    </div>
+                    <pre id="rt-out" class="small bg-white border p-2"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function token() { return localStorage.getItem('st_token'); }
+    function authHeaders() {
+        const t = token();
+        return t ? { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+    }
+    if (token()) document.getElementById('auth-warn').classList.add('d-none');
+
+    async function api(path, opts = {}) {
+        const res = await fetch(path, { ...opts, headers: { ...authHeaders(), ...opts.headers } });
+        const text = await res.text();
+        try { return { ok: res.ok, data: JSON.parse(text) }; } catch { return { ok: res.ok, data: text }; }
+    }
+
+    document.getElementById('sim-tick').onclick = async () => {
+        const r = await api('/api/simulation/run', { method: 'POST', body: '{}' });
+        document.getElementById('sim-out').textContent = JSON.stringify(r.data, null, 2);
+    };
+    document.getElementById('sim-auto-off').onclick = async () => {
+        const r = await api('/api/simulation/run', { method: 'POST', body: JSON.stringify({ auto: false }) });
+        document.getElementById('sim-out').textContent = JSON.stringify(r.data, null, 2);
+    };
+    document.getElementById('sim-auto-on').onclick = async () => {
+        const r = await api('/api/simulation/run', { method: 'POST', body: JSON.stringify({ auto: true }) });
+        document.getElementById('sim-out').textContent = JSON.stringify(r.data, null, 2);
+    };
+
+    document.getElementById('em-go').onclick = async () => {
+        const raw = document.getElementById('em-route').value.split(',').map(s => s.trim()).filter(Boolean);
+        const ids = raw.map(Number);
+        const r = await api('/api/emergency/activate', { method: 'POST', body: JSON.stringify({ routeIntersectionIds: ids }) });
+        document.getElementById('em-out').textContent = JSON.stringify(r.data, null, 2);
+    };
+
+    document.getElementById('vc-set').onclick = async () => {
+        const id = Number(document.getElementById('vc-id').value);
+        const count = Number(document.getElementById('vc-count').value);
+        const r = await api('/api/simulation/set-count', {
+            method: 'POST',
+            body: JSON.stringify({ intersectionId: id, vehicleCount: count })
+        });
+        document.getElementById('vc-out').textContent = JSON.stringify(r.data, null, 2);
+    };
+
+    document.getElementById('rt-go').onclick = async () => {
+        const from = document.getElementById('rt-from').value;
+        const to = document.getElementById('rt-to').value;
+        const r = await fetch('/api/route/optimize?from=' + from + '&to=' + to);
+        document.getElementById('rt-out').textContent = await r.text();
+    };
+</script>
+</body>
+</html>
